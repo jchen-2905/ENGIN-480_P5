@@ -67,25 +67,33 @@ wfm = BastankhahGaussian(site, windTurbines)
 sigma = 3000.0
 mu = 0.0
 
-x_peak_1 = 1000
-y_peak_1 = -1000
-x_peak_2 = 4000
-y_peak_2 = -8000
-x1, y1 = np.meshgrid(np.linspace(0 - x_peak_1, 6000- x_peak_1, 100), np.linspace(-10000 - y_peak_1, 0 - y_peak_1, 100))
-d1 = np.sqrt(x1*x1 + y1*y1)
+x_peak_1 = x_init.mean()
+y_peak_1 = y_init.mean()
+x_peak_2 = x_init.max() + 1000
+y_peak_2 = y_init.min() - 1000
+
+x1, y1 = np.meshgrid(np.linspace(x_init.min() - 1000, x_init.max() + 1000, 100),
+                     np.linspace(y_init.min() - 1000, y_init.max() + 1000, 100))
+d1 = np.sqrt((x1 - x_peak_1)**2 + (y1 - y_peak_1)**2)
 g1 = np.exp(-((d1 - mu)**2 / (2.0 * sigma**2)))
-x2, y2 = np.meshgrid(np.linspace(0 - x_peak_2, 6000- x_peak_2, 100), np.linspace(-10000 - y_peak_2, 0 - y_peak_2, 100))
-d2 = np.sqrt(x2*x2 + y2*y2)
+
+x2, y2 = np.meshgrid(np.linspace(x_init.min() - 1000, x_init.max() + 1000, 100),
+                     np.linspace(y_init.min() - 1000, y_init.max() + 1000, 100))
+d2 = np.sqrt((x2 - x_peak_2)**2 + (y2 - y_peak_2)**2)
 g2 = np.exp(-((d2 - mu)**2 / (2.0 * sigma**2)))
+
 g = 5 * g1 - 8 * g2 - 30
 
-plt.imshow(g, extent=(-1000, 7000, -11000, 1000), origin='lower', cmap='viridis')
+plt.imshow(g, extent=(x_init.min() - 1000, x_init.max() + 1000,
+                      y_init.min() - 1000, y_init.max() + 1000),
+           origin='lower', cmap='viridis')
 plt.colorbar()
 plt.title('2D Gaussian Function')
 
-x = np.linspace(-1000, 7000, 100)
-y = np.linspace(-11000, 1000, 100)
+x = np.linspace(x_init.min() - 1000, x_init.max() + 1000, 100)
+y = np.linspace(y_init.min() - 1000, y_init.max() + 1000, 100)
 f = RegularGridInterpolator((x, y), g)
+
 
 x_ss_init = x_init.mean()
 y_ss_init = y_init.mean()
