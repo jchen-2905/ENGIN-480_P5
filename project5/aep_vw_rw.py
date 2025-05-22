@@ -21,6 +21,7 @@ from py_wake.utils.gradients import autograd
 from py_wake.validation.lillgrund import LillgrundSite
 from py_wake.wind_turbines.generic_wind_turbines import GenericWindTurbine
 from topfarm.cost_models.cost_model_wrappers import AEPCostModelComponent
+from py_wake.site.shear import PowerShear
 
 # === Vineyard Wind 1 Boundary and Layout Coordinates ===
 vw_utm_turbines = np.array([
@@ -294,14 +295,13 @@ n_rw = len(rw_xinit)
 n_wt = n_vw + n_rw
 print(f"Initial layout has {n_wt} wind turbines")
 
-
 # === Vineyard Wind 1 Turbine and Site ===
 
 class HaliadeX13MW(GenericWindTurbine):
     def __init__(self):
         GenericWindTurbine.__init__(self, name = 'Haliade-X 13 MW', diameter = 200, hub_height = 133, power_norm = 13000, turbulence_intensity=0.07)
 class VineyardWind1(UniformWeibullSite):
-    def __init__(self, ti=0.07, shear=None):
+    def __init__(self, ti=0.07, shear=PowerShear(h_ref=150, alpha=0.1)):
         f = [6.4452, 7.6731, 6.4753, 6.0399, 4.8786, 4.5063, 7.3180, 11.7828, 13.0872,  11.1976, 11.1351, 9.4610]
         a = [10.26, 10.44, 9.52, 8.96, 9.58, 9.72, 11.48, 13.25, 12.46, 11.40, 12.35, 10.48]
         k = [2.225, 1.697, 1.721, 1.689, 1.525, 1.498, 1.686, 2.143, 2.369, 2.186, 2.385, 2.404]
@@ -324,7 +324,7 @@ rw_mask = np.zeros(n_wt, dtype=bool)
 vw_mask[:n_vw] = True             # Vineyard Wind turbines
 rw_mask[n_vw:n_vw + n_rw] = True  # Revolution Wind turbines
 
-# Print turbine indices for each wind farm
+# === Print turbine indices for each wind farm ===
 print(f"Turbines belonging to Vineyard Wind: {np.where(vw_mask)[0]}")
 print(f"Turbines belonging to Revolution Wind: {np.where(rw_mask)[0]}")
 
@@ -340,20 +340,12 @@ constraint_comp = MultiWFBoundaryConstraint(
     boundtype = BoundaryType.POLYGON  
 )
 
-
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-plt.plot(x_init, y_init, "x", c="magenta")
-
-plt.axis("equal")
-constraint_comp.get_comp(n_wt).plot(ax1)
-plt.show()
-
-# AEP Cost Model Component - SLSQP
+# === AEP Cost Model Component - SLSQP ===
 slsqp_cost_comp = PyWakeAEPCostModelComponent(
     windFarmModel=wf_model, n_wt=n_wt, grad_method=autograd
 )
 
+# === Driver and Constraints ===
 driver_type = "SLSQP"  
 min_spacing = vw_wind_turbines.diameter() * 2
 
@@ -367,6 +359,7 @@ driver = EasyScipyOptimizeDriver(
 )
 cost_comp = slsqp_cost_comp
 
+# === Create TopFarm Problem ===
 problem = TopFarmProblem(
     design_vars={"x": x_init, "y": y_init},
     n_wt=n_wt,
@@ -376,5 +369,6 @@ problem = TopFarmProblem(
     plot_comp=XYPlotComp(),
 )
 
+# === lets gooo ===
 cost, state, recorder = problem.optimize(disp=True)
 recorder.save("testing")
