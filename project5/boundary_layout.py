@@ -142,10 +142,12 @@ def get_lat_long(filepath):
 wind_farms_europe = {
 
 ### USA
-    'VineyardWind1':                            'vineyardwind.geojson',             
+    #'VineyardWind1':                            'vineyardwind.geojson',             
     #'Revolutionwind':                           'revolutionwind.geojson', 
     #'CoastalVirginia':                          'coastalvirginia.geojson',
     #'HornsRev1':                                'hornsrev1.geojson',
+    #'SkipjackWind':                            'skipjackwind.geojson',
+    'MarylandOffshore':                     'marylandoffshore.geojson',
     
 }
 
